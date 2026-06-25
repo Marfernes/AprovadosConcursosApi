@@ -16,7 +16,7 @@ namespace AprovadosConcursosApi.Application.Services
             _tokenService = tokenService;
         }
 
-        public string Login(LoginRequest request)
+        public string Login(LoginRequestDto request)
         {
             var user = BuscarUsuario(request.Email);
 

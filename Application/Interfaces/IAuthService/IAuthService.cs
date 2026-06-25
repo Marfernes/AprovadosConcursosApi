@@ -4,6 +4,6 @@ namespace AprovadosConcursosApi.Application.Interfaces
 {
     public interface IAuthService
     {
-        string Login(LoginRequest request);
+        string Login(LoginRequestDto request);
     }
 }
