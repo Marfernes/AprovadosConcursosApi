@@ -1,9 +1,10 @@
 using AprovadosConcursosApi.Application.Dtos.Login;
+using AprovadosConcursosApi.Domain.Entities.Login;
 
 namespace AprovadosConcursosApi.Application.Interfaces
 {
     public interface IAuthService
     {
-        string Login(LoginRequestDto request);
+       LoginResponse Login(LoginRequestDto request);
     }
 }

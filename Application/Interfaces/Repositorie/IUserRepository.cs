@@ -1,7 +1,9 @@
-using AprovadosConcursosApi.Application.Interfaces.Repositorie;
 using AprovadosConcursosApi.Domain.Entities.Users;
 
-public interface IUserRepository : IRepositoryBase<User>
+namespace AprovadosConcursosApi.Application.Interfaces.Repositorie
 {
-    User? GetByEmail(string email);
+    public interface IUserRepository : IRepositoryBase<User>
+    {
+        Task<User?> GetByEmailAsync(string email);
+    }
 }

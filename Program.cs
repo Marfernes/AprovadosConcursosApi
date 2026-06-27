@@ -2,19 +2,27 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.OpenApi.Models;
 using AprovadosConcursosApi.Infrastructure.Data.ContextBase;
 using AprovadosConcursosApi.Application.Services;
 using AprovadosConcursosApi.Application.Interfaces;
-using AprovadosConcursosApi.Application.Interfaces.Repositorie;
-using AprovadosConcursosApi.Infrastructure.Repositories;
-using Microsoft.OpenApi.Models;
 using AprovadosConcursosApi.Application.Interfaces.Services;
+using AprovadosConcursosApi.Domain.Interfaces.IUnitOfWork;
+using AprovadosConcursosApi.Infrastructure.UnitOfWork;
+using AprovadosConcursosApi.Domain.Interfaces.Repositories;
+using AprovadosConcursosApi.Infrastructure.Repositories;
+using AprovadosConcursosApi.Application.Interfaces.Repositorie;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// =========================
+// CONTROLLERS
+// =========================
 builder.Services.AddControllers();
 
-// JWT
+// =========================
+// JWT AUTH
+// =========================
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
 {
@@ -27,33 +35,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
-        )
+        ),
+
+        ClockSkew = TimeSpan.Zero
     };
 
-    //LOGS ADICIONADOS (debug JWT)
     options.Events = new JwtBearerEvents
     {
-        OnMessageReceived = context =>
-        {
-            Console.WriteLine("🔵 HEADER AUTH RECEBIDO: " + context.Request.Headers["Authorization"]);
-            return Task.CompletedTask;
-        },
-
         OnAuthenticationFailed = context =>
         {
-            Console.WriteLine(context.Exception.Message);
-            return Task.CompletedTask;
-        },
-
-        OnTokenValidated = context =>
-        {
-            var role = context.Principal?.Claims
-                .FirstOrDefault(x => x.Type.Contains("role"))?.Value;
-            return Task.CompletedTask;
-        },
-
-        OnChallenge = context =>
-        {
+            Console.WriteLine("JWT ERROR: " + context.Exception.Message);
             return Task.CompletedTask;
         }
     };
@@ -61,19 +52,49 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-//DB
+// =========================
+// DB CONTEXT
+// =========================
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
 
-//DEPENDENCY INJECTION (AQUI!)
+// =========================
+// DEPENDENCY INJECTION
+// =========================
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<TokenService>();
-
-//ADICIONADO (Repository + Service de Users)
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IEditalService, EditalService>();
+builder.Services.AddScoped<IOrgaoService, OrgaoService>();
+builder.Services.AddScoped<IBancaService, BancaService>();
+builder.Services.AddScoped<ICargoService, CargoService>();
 
-// Swagger
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IEditalRepository, EditalRepository>();
+builder.Services.AddScoped<IOrgaoRepository, OrgaoRepository>();
+builder.Services.AddScoped<IBancaRepository, BancaRepository>();
+builder.Services.AddScoped<ICargoRepository, CargoRepository>();
+
+// =========================
+// CORS (FIX REAL PARA PRE-FLIGHT)
+// =========================
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .SetPreflightMaxAge(TimeSpan.FromMinutes(10));
+    });
+});
+
+// =========================
+// SWAGGER
+// =========================
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options =>
@@ -103,13 +124,23 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
+
+// =========================
+// BUILD APP
+// =========================
 var app = builder.Build();
 
-//Swagger
-app.UseSwagger();
-app.UseSwaggerUI();
+// 🔥 DEBUG (opcional)
+app.Use(async (context, next) =>
+{
+    Console.WriteLine($"REQ: {context.Request.Method} {context.Request.Path}");
+    await next();
+});
 
-//IMPORTANTE: ordem correta
+app.UseRouting();
+
+app.UseCors("AllowFrontend"); // 🔥 OBRIGATÓRIO AQUI
+
 app.UseAuthentication();
 app.UseAuthorization();
 

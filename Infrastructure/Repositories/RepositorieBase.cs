@@ -15,34 +15,36 @@ namespace AprovadosConcursosApi.Infrastructure.Repositories
             _dbSet = context.Set<T>();
         }
 
-        public T? GetById(Guid id)
+        public async Task AddAsync(T entity)
         {
-            return _dbSet.Find(id);
+            await _context.Set<T>().AddAsync(entity);
         }
 
-        public List<T> GetAll()
+        public async Task SaveChangesAsync()
         {
-            return _dbSet.ToList();
+            await _context.SaveChangesAsync();
         }
 
-        public void Add(T entity)
+        public async Task<T?> GetByIdAsync(Guid id)
         {
-            _dbSet.Add(entity);
+            return await _context.Set<T>().FindAsync(id);
         }
 
-        public void Update(T entity)
+        public async Task<List<T>> GetAllAsync()
         {
-            _dbSet.Update(entity);
+            return await _context.Set<T>().ToListAsync();
         }
 
-        public void Delete(T entity)
+        public Task UpdateAsync(T entity)
         {
-            _dbSet.Remove(entity);
+            _context.Set<T>().Update(entity);
+            return Task.CompletedTask;
         }
 
-        public void SaveChanges()
+        public Task DeleteAsync(T entity)
         {
-            _context.SaveChanges();
+            _context.Set<T>().Remove(entity);
+            return Task.CompletedTask;
         }
     }
 }

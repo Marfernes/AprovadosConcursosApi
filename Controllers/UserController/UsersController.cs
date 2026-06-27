@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using AprovadosConcursosApi.Application.Interfaces.Services;
 using AprovadosConcursosApi.Application.Dtos.User;
 using AprovadosConcursosApi.Application.Dtos.UserRole;
+using System.Threading.Tasks;
 
 namespace AprovadosConcursosApi.Controllers
 {
@@ -22,17 +23,17 @@ namespace AprovadosConcursosApi.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var users = _userService.GetAll();
+            var users = await _userService.GetAllAsync();
             return Ok(users);
         }
 
         [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
-        public IActionResult GetById(Guid id)
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var user = _userService.GetById(id);
+            var user = await _userService.GetByIdAsync(id);
 
             if (user == null)
                 return NotFound("Usuário não encontrado");
@@ -43,17 +44,17 @@ namespace AprovadosConcursosApi.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}/role")]
-        public IActionResult UpdateRole(Guid id, UpdateUserRoleDto dto)
+        public async Task<IActionResult> UpdateRole(Guid id, UpdateUserRoleDto dto)
         {
-            _userService.UpdateRole(id, dto.Role);
+            await _userService.UpdateRoleAsync(id, dto.Role);
             return Ok("Role atualizada com sucesso");
         }
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
-        public IActionResult Delete(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            _userService.Delete(id);
+            await _userService.DeleteAsync(id);
             return Ok("Usuário removido");
         }
     }

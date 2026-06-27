@@ -5,14 +5,14 @@ namespace AprovadosConcursosApi.Application.Interfaces.Services
 {
     public interface IUserService
     {
-        User Create(CreateUserDto dto);
+        Task<User> CreateAsync(CreateUserDto dto);
 
-        List<User> GetAll();
+        Task<List<User>> GetAllAsync();
 
-        User? GetById(Guid id);
+        Task<User?> GetByIdAsync(Guid id);
 
-        void UpdateRole(Guid id, string role);
+        Task UpdateRoleAsync(Guid id, string role);
 
-        void Delete(Guid id);
+        Task DeleteAsync(Guid id);
     }
 }

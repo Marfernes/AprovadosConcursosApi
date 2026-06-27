@@ -2,13 +2,16 @@ namespace AprovadosConcursosApi.Application.Interfaces.Repositorie
 {
     public interface IRepositoryBase<T> where T : class
     {
-        T? GetById(Guid id);
-        List<T> GetAll();
+        Task<T?> GetByIdAsync(Guid id);
 
-        void Add(T entity);
-        void Update(T entity);
-        void Delete(T entity);
+        Task<List<T>> GetAllAsync();
 
-        void SaveChanges();
+        Task AddAsync(T entity);
+
+        Task UpdateAsync(T entity);
+
+        Task DeleteAsync(T entity);
+
+        Task SaveChangesAsync();
     }
 }

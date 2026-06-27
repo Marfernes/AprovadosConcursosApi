@@ -10,9 +10,10 @@ namespace AprovadosConcursosApi.Infrastructure.Repositories
         {
         }
 
-        public User? GetByEmail(string email)
+        public async Task<User?> GetByEmailAsync(string email)
         {
-            return _context.Users.FirstOrDefault(x => x.Email == email);
+            var resultado =  _context.Users.FirstOrDefault(x => x.Email == email);
+            return resultado;
         }
     }
 }
